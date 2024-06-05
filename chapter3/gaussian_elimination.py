@@ -28,18 +28,18 @@ def pivot(A, b, partial_pivot=True):
     n = A.shape[0]
     for i in range(n):
       _partial_pivot(A, b, col=i)
-
-  print('Currently pivoting is a no-op')
+  else:
+    raise NotImplementedError('Full pivoting is not implemented.')
   return A, b
 
 
 # Converts `Ax = b` into `Ux = y` where `U` is upper triangular.
-def forward_substitution(A, b):
+def forward_substitution(A, b, partial_pivot=False):
   # Copy and modify the copies.
   A, b = np.copy(A), np.copy(b)
 
   # Pivot A and b if needed
-  A, b = pivot(A, b, partial_pivot=False)
+  A, b = pivot(A, b, partial_pivot=partial_pivot)
 
   # Assuming a square matrix A.
   assert A.ndim == 2, f'A is not dim 2, {A.ndim=}'

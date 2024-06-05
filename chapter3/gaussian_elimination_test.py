@@ -6,12 +6,14 @@ import numpy as np
 
 class GaussianEliminationTest(unittest.TestCase):
   def test_pivoting(self):
-    A = np.array([[0, 1, -1], [1, 1, -2], [3, -1, 1]], dtype=np.float64)
-    b = np.array([-1, -3, 4], dtype=np.float64)
+    A = np.array([[0, -3, 5], [1, 2, 4], [2, 7, 6]], dtype=np.float64)
+    b = np.array([0, 1, 2], dtype=np.float64)
     ge.pivot(A, b, partial_pivot=True)
-    print(A)
-    print()
-    print(b)
+    np.testing.assert_allclose(
+        A,
+        np.array([[2, 7, 6], [0, -3, 5], [1, 2, 4]], dtype=np.float64)
+    )
+    np.testing.assert_allclose(b, np.array([2, 0, 1], dtype=np.float64))
 
   def test_forward_substitution(self):
     A = np.array([[1, 1, -2], [0, 1, -1], [3, -1, 1]], dtype=np.float64)
