@@ -16,15 +16,22 @@ class GaussianEliminationTest(unittest.TestCase):
     np.testing.assert_allclose(b, np.array([2, 0, 1], dtype=np.float64))
 
   def test_forward_substitution(self):
-    A = np.array([[1, 1, -2], [0, 1, -1], [3, -1, 1]], dtype=np.float64)
+    A = np.array(
+        [[1, 1, -2],
+         [0, 1, -1],
+         [3, -1, 1]],
+        dtype=np.float64)
     b = np.array([-3, -1, 4], dtype=np.float64)
     U, y = ge.forward_substitution(A, b)
-
     np.testing.assert_allclose(
         U,
-        np.array([[1, 1, -2], [0, 1, -1], [0, 0, 1]], dtype=np.float64)
+        np.array(
+            [[1, -1./3, 1/3],
+             [0, 1, -1],
+             [0, 0, 1]],
+            dtype=np.float64)
     )
-    np.testing.assert_allclose(y, np.array([-3, -1, 4./3], dtype=np.float64))
+    np.testing.assert_allclose(y, np.array([4./3, -1, 3], dtype=np.float64))
 
   def test_backward_substitution(self):
     U = np.array([[1, 1, -2], [0, 1, -1], [0, 0, 1]], dtype=np.float64)
@@ -33,6 +40,14 @@ class GaussianEliminationTest(unittest.TestCase):
     A, b = ge.back_substitution(U, y)
     np.testing.assert_allclose(A, np.eye(3))
     np.testing.assert_allclose(b, np.array([1, 2, 3], dtype=np.float64))
+
+  def test_gaussian_elimination(self):
+    A = np.array([[1, 1, -2], [0, 1, -1], [3, -1, 1]], dtype=np.float64)
+    b = np.array([-3, -1, 4], dtype=np.float64)
+    U, y = ge.forward_substitution(A, b)
+    I, s = ge.back_substitution(U, y)
+    np.testing.assert_allclose(I, np.eye(3))
+    np.testing.assert_allclose(s, np.array([1, 2, 3], dtype=np.float64))
 
 
 if __name__ == '__main__':

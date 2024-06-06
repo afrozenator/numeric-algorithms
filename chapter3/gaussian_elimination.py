@@ -1,6 +1,13 @@
 import numpy as np
 
 
+def _assert_square_and_return_dim(A):
+  assert A.ndim == 2, f'A is not dim 2, {A.ndim=}'
+  assert A.shape[0] == A.shape[1], f'A is not square, {A.shape=}'
+  n = A.shape[0]
+  return n
+
+
 # Only does row re-orderings, not column - and only for one column.
 def _partial_pivot(A, b, col=0):
   remaining_column = A[col:, col]
@@ -29,52 +36,39 @@ def pivot(A, b, partial_pivot=True):
     for i in range(n):
       _partial_pivot(A, b, col=i)
   else:
-    raise NotImplementedError('Full pivoting is not implemented.')
+    print('Full pivoting is not implemented.')
   return A, b
 
 
 # Converts `Ax = b` into `Ux = y` where `U` is upper triangular.
-def forward_substitution(A, b, partial_pivot=False):
-  # Copy and modify the copies.
-  A, b = np.copy(A), np.copy(b)
-
-  # Pivot A and b if needed
-  A, b = pivot(A, b, partial_pivot=partial_pivot)
-
-  # Assuming a square matrix A.
-  assert A.ndim == 2, f'A is not dim 2, {A.ndim=}'
-  assert A.shape[0] == A.shape[1], f'A is not square, {A.shape=}'
-  n = A.shape[0]
-
+def forward_substitution(A_nn, b_n, debug=False):
+  A = np.copy(A_nn)
+  b = np.copy(b_n)
+  A, b = pivot(A, b, partial_pivot=True)
+  n = _assert_square_and_return_dim(A)
+  if debug:
+    print(f'Init: {A=}')
+    print(f'Init: {b=}')
   for i in range(n):
-    # Make the diagonal value as 1.
-    # NOTE: Could be numerically unstable, do pivoting as needed.
     v = A[i, i]
-    # print(f'For {i=} we see diagonal {v=}')
-    if abs(v) < 1e-8:
-      # Swap with the largest absolute value that comes after i.
-      swap_idx = np.argmax(np.abs(A[i+1:, i]))
-      # print(
-      #     f'For {i=} since v < 1e-8, we see: {swap_idx=} and we will add {i + 1}')
-      swap_idx += (i + 1)
-      tmp = np.copy(A[i])
-      A[i] = A[swap_idx]
-      A[swap_idx] = tmp
-      # This one didn't seem to work ?!
-      # A[i], A[swap_idx] = A[swap_idx], A[i]
-      b[i], b[swap_idx] = b[swap_idx], b[i]
-      v = A[i, i]
-      # print(f'The current {v=}')
-      # print(f'Current A and b are: \n {A=} \n {b=}')
+    # Make element at the diagonal on the i-th row as 1.
     A[i] /= v
     b[i] /= v
-
-    # for i + 1 onwards, do the subtraction to make the lower triangular
-    # part hold.
-    for j in range(i+1, n):
-      A[j] -= A[j, i] * A[i]
-      b[j] -= A[j, i] * b[i]
-
+    # Let's update for the rows below this.
+    coeffs = A[i+1:, i]  # shape: (n - i - 1,)
+    subtract_A = A[i] * coeffs[..., None]  # (n,) x (n-i-1, 1) -> (n-i-1, n)
+    subtract_b = b[i] * coeffs  # shape: (n - i - 1,)
+    # Do all the updates in the very end, since `coeffs` etc are views into
+    # the array and not copies.
+    A[i+1:] -= subtract_A
+    b[i+1:] -= subtract_b
+    if debug:
+      print(f'{coeffs=}')
+      print(f'{subtract_A=}')
+      print(f'{b[i]=}')
+      print(f'{subtract_b=}')
+      print(f'{i}: {A=}')
+      print(f'{i}: {b=}')
   return A, b
 
 
