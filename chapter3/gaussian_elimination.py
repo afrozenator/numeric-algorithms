@@ -41,9 +41,11 @@ def pivot(A, b, partial_pivot=True):
 
 
 # Converts `Ax = b` into `Ux = y` where `U` is upper triangular.
-def forward_substitution(A_nn, b_n, debug=False):
+def forward_substitution(A_nn, b_nb, debug=False):
   A = np.copy(A_nn)
-  b = np.copy(b_n)
+  b = np.copy(b_nb)
+  if b.ndim == 1:
+    b = b[..., np.newaxis]
   A, b = pivot(A, b, partial_pivot=True)
   n = _assert_square_and_return_dim(A)
   if debug:
@@ -54,19 +56,21 @@ def forward_substitution(A_nn, b_n, debug=False):
     # Make element at the diagonal on the i-th row as 1.
     A[i] /= v
     b[i] /= v
-    # Let's update for the rows below this.
-    coeffs = A[i+1:, i]  # shape: (n - i - 1,)
-    subtract_A = A[i] * coeffs[..., None]  # (n,) x (n-i-1, 1) -> (n-i-1, n)
-    subtract_b = b[i] * coeffs  # shape: (n - i - 1,)
-    # Do all the updates in the very end, since `coeffs` etc are views into
-    # the array and not copies.
-    A[i+1:] -= subtract_A
-    b[i+1:] -= subtract_b
+    if i < n - 1:
+      # Let's update for the rows below this.
+      coeffs = A[i+1:, i]  # shape: (n - i - 1,)
+      subtract_A = A[i] * coeffs[..., None]  # (n,) x (n-i-1, 1) -> (n-i-1, n)
+      subtract_b = b[i] * coeffs[..., None]  # (b,) x (n-i-1, 1) -> (n-i-1, b)
+      if debug:
+        print(f'{i}: {coeffs=}')
+        print(f'{i}: {subtract_A=}')
+        print(f'{i}: {b[i]=}')
+        print(f'{i}: {subtract_b=}')
+      # Do all the updates in the very end, since `coeffs` etc are views into
+      # the array and not copies.
+      A[i+1:] -= subtract_A
+      b[i+1:] -= subtract_b
     if debug:
-      print(f'{coeffs=}')
-      print(f'{subtract_A=}')
-      print(f'{b[i]=}')
-      print(f'{subtract_b=}')
       print(f'{i}: {A=}')
       print(f'{i}: {b=}')
   return A, b
@@ -75,6 +79,8 @@ def forward_substitution(A_nn, b_n, debug=False):
 # Solves `Ux = y`  where U is upper triangular.
 def back_substitution(U, y):
   A, b = np.copy(U), np.copy(y)
+  if b.ndim == 1:
+    b = b[..., np.newaxis]
 
   assert U.ndim == 2
   assert U.shape[0] == U.shape[1]
@@ -90,7 +96,7 @@ def back_substitution(U, y):
     r = A[i]  # (n,)
     dA = r[None, :] * c[:, None]  # (i-1, n)
     # print(f'Updates to A: \n{r}')
-    db = b[i] * c
+    db = b[i] * c[:, None]
     # print(f'bu = b[i] * c: \n{b[i]=}\n{c=}\n{db}')
     A[:i] -= dA
     b[:i] -= db
