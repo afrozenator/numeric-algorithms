@@ -45,7 +45,6 @@ def pivot(A, b, partial_pivot=True):
 
 
 # Converts `Ax = b` into `Ux = y` where `U` is upper triangular.
-# TODO(afro): This is probably buggy.
 def forward_substitution(A_nn, b_nb, debug=False):
   A = np.copy(A_nn)
   b = np.copy(b_nb)
@@ -133,3 +132,61 @@ def elimination_matrix(from_row, to_row, n, scale=1):
 def permutation_matrix(permutation_vec):
   I = np.eye(permutation_vec.shape[0])
   return I[permutation_vec]
+
+
+def scaling_matrix(index, scalar, n, inverse=False):
+  I = np.eye(n)
+  I[index, index] = scalar if not inverse else 1./scalar
+  return I
+
+
+# Since A = LU, and we-pre-multiply A with scaling and elimination matrices, we eventually get:
+# M_{n-1}...M_1M_0A = U
+# Which basically means that A = M_0^{-1}M_1^{-1}...M_{n-1}^{-1}U
+# Which implies that L = M_0^{-1}M_1^{-1}...M_{n-1}^{-1}
+# So, we just keep post-multiplying the inverse of the matrices we used to get U, i.e. the recurrence is:
+# L = L @ M_i^{-1}
+# U = M_i @ U
+def lu_factorization(A_nn, debug=False):
+  # This will gradually become U.
+  U = np.copy(A_nn)
+  n = _assert_square_and_return_dim(U)
+  L = np.eye(n)
+  if debug:
+    print(f'Init: {L=}')
+    print(f'Init: {U=}')
+  # `L` will gradually become L.
+  for i in range(n):
+    v = U[i, i]
+
+    # Make element at the diagonal on the i-th row as 1.
+    S = scaling_matrix(i, 1./v, n)
+    S_inv = scaling_matrix(i, v, n)
+
+    U = S @ U      # U gets pre-multiplied with S.
+    L = L @ S_inv  # L gets post-multiplied with S_inv.
+    if debug:
+      print(f'{i}: After scaling: {L=}')
+      print(f'{i}: After scaling: {U=}')
+
+    if i < n - 1:
+      # Let's update for the rows below this.
+      coeffs = U[i+1:, i]  # shape: (n - i - 1,)
+
+      em = np.eye(n)
+      em[i+1:, i] = -coeffs
+
+      em_inv = np.eye(n)
+      em_inv[i+1:, i] = coeffs
+
+      U = em @ U
+      L = L @ em_inv
+
+    if debug:
+      print(f'{i}: After elimination: {L=}')
+      print(f'{i}: After elimination: {U=}')
+
+  if debug:
+    print(f'{i} Final: {L=}')
+    print(f'{i} Final: {U=}')
+  return L, U

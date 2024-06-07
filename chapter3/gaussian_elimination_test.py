@@ -216,6 +216,42 @@ class GaussianEliminationTest(unittest.TestCase):
     np.testing.assert_allclose(Ap[1], A[0])
     np.testing.assert_allclose(Ap[2], A[2])
 
+  def test_scaling_matrix(self):
+    A = np.arange(1, 10).reshape(3, 3)
+    index = 1
+    scale = 2
+    n = A.shape[0]
+    sm = ge.scaling_matrix(index, scale, n=n, inverse=False)
+    A_scaled = sm @ A
+    np.testing.assert_allclose(A_scaled[index], scale * A[index])
+    for i in range(n):
+      if i == index:
+        continue
+      np.testing.assert_allclose(A_scaled[i], A[i])
+
+    # Test inverse scaling.
+    sm = ge.scaling_matrix(index, scale, n=n, inverse=True)
+    A_scaled = sm @ A
+    np.testing.assert_allclose(A_scaled[index], A[index] / scale)
+    for i in range(n):
+      if i == index:
+        continue
+      np.testing.assert_allclose(A_scaled[i], A[i])
+
+  def test_lu_factorization(self):
+    A = np.array([
+        [5., 6., 6., 8.],
+        [2., 2., 2., 8.],
+        [6., 6., 2., 8.],
+        [2., 3., 6., 7.]
+    ], dtype=np.float64)
+    L, U = ge.lu_factorization(A)
+    np.testing.assert_allclose(A, L @ U)
+    n = A.shape[0]
+    for i in range(n):
+      np.testing.assert_allclose(L[i, i + 1:], np.zeros(n - i - 1))
+      np.testing.assert_allclose(U[i + 1:, i], np.zeros(n - i - 1))
+
 
 if __name__ == '__main__':
   unittest.main()
