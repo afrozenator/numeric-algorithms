@@ -1,5 +1,9 @@
 import numpy as np
 
+# TODO(afro): Do this in jax.
+# TODO(afro): Do full pivoting.
+# TODO(afro): Continuously pivoting.
+
 
 def _assert_square_and_return_dim(A):
   assert A.ndim == 2, f'A is not dim 2, {A.ndim=}'
@@ -41,6 +45,7 @@ def pivot(A, b, partial_pivot=True):
 
 
 # Converts `Ax = b` into `Ux = y` where `U` is upper triangular.
+# TODO(afro): This is probably buggy.
 def forward_substitution(A_nn, b_nb, debug=False):
   A = np.copy(A_nn)
   b = np.copy(b_nb)
@@ -104,3 +109,27 @@ def back_substitution(U, y):
     # print(f'b: \n{b=}')
 
   return A, b
+
+
+def move_and_scale(from_row, to_row, n, scale=1):
+  em = np.zeros((n, n))
+  em[to_row, from_row] = scale
+  return em
+
+
+def move_and_scale_with_unit_vectors(from_row, to_row, n, scale=1):
+  I = np.eye(n)
+  from_unit_vec = I[from_row]  # (n,)
+  to_unit_vec = I[to_row]      # (n,)
+  from_unit_vec = from_unit_vec[None, ...]  # (1,n)
+  to_unit_vec = to_unit_vec[..., None]      # (n,1)
+  return scale * (to_unit_vec @ from_unit_vec)        # (n,n)
+
+
+def elimination_matrix(from_row, to_row, n, scale=1):
+  return np.eye(n) + move_and_scale(from_row, to_row, n, scale)
+
+
+def permutation_matrix(permutation_vec):
+  I = np.eye(permutation_vec.shape[0])
+  return I[permutation_vec]

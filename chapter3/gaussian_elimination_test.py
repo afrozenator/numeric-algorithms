@@ -172,6 +172,50 @@ class GaussianEliminationTest(unittest.TestCase):
             dtype=np.float64)
     )
 
+  def test_move_and_scale(self):
+    A = np.arange(1, 10).reshape(3, 3)
+    from_row = 1
+    to_row = 2
+    scale = 3
+    em = ge.move_and_scale(from_row, to_row, A.shape[0], scale)
+    ap = em @ A
+    np.testing.assert_allclose(np.zeros(3), ap[0])
+    np.testing.assert_allclose(np.zeros(3), ap[1])
+    np.testing.assert_allclose(scale * A[from_row], ap[to_row])
+
+    em_uv = ge.move_and_scale_with_unit_vectors(
+        from_row, to_row, A.shape[0], scale)
+    ap_uv = em_uv @ A
+    np.testing.assert_allclose(ap_uv, ap)
+
+  def test_elimination_matrix(self):
+    A_nn = np.array(
+        [[1, 1, -2],
+         [0, 1, -1],
+         [3, -1, 1]],
+        dtype=np.float64)
+    em = ge.elimination_matrix(0, 2, 3, -3)
+    A_em = em @ A_nn
+    np.testing.assert_allclose(
+        A_em,
+        np.array(
+            [
+                [1, 1, -2],
+                [0, 1, -1],
+                [0, -4, 7],
+            ],
+            dtype=np.float64)
+    )
+
+  def test_permutation_matrix(self):
+    A = np.arange(1, 10).reshape(3, 3)
+    pv = np.array([1, 0, 2])
+    pm = ge.permutation_matrix(pv)
+    Ap = pm @ A
+    np.testing.assert_allclose(Ap[0], A[1])
+    np.testing.assert_allclose(Ap[1], A[0])
+    np.testing.assert_allclose(Ap[2], A[2])
+
 
 if __name__ == '__main__':
   unittest.main()
