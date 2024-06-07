@@ -1,8 +1,9 @@
 import numpy as np
 
 # TODO(afro): Do this in jax.
-# TODO(afro): Do full pivoting.
-# TODO(afro): Continuously pivoting.
+# TODO(afro): Do full pivoting in GE.
+# TODO(afro): Do continuously pivoting in GE.
+# TODO(afro): Do pivoting in LU.
 
 
 def _assert_square_and_return_dim(A):
