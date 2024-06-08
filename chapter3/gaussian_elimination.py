@@ -191,3 +191,15 @@ def lu_factorization(A_nn, debug=False):
     print(f'{i} Final: {L=}')
     print(f'{i} Final: {U=}')
   return L, U
+
+
+def gaussian_elimination(A_nn, b_nb, debug=False):
+  U, y = forward_substitution(A_nn, b_nb)
+  if debug:
+    print(f'U: {U=}')
+    print(f'y: {y=}')
+  I, s = back_substitution(U, y)
+  if debug:
+    print(f'I: {I=}')
+    print(f's: {s=}')
+  return s

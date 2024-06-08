@@ -252,6 +252,19 @@ class GaussianEliminationTest(unittest.TestCase):
       np.testing.assert_allclose(L[i, i + 1:], np.zeros(n - i - 1))
       np.testing.assert_allclose(U[i + 1:, i], np.zeros(n - i - 1))
 
+  def test_inversion_via_gaussian_elimination_ex_3p7(self):
+    A = np.array([
+        [5., 6., 6., 8.],
+        [2., 2., 2., 8.],
+        [6., 6., 2., 8.],
+        [2., 3., 6., 7.]
+    ], dtype=np.float64)
+    n = A.shape[0]
+    b = np.eye(n)
+    x = ge.gaussian_elimination(A, b)
+    A_inv = np.linalg.inv(A)
+    np.testing.assert_allclose(A_inv, x)
+
 
 if __name__ == '__main__':
   unittest.main()
