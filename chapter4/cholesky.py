@@ -34,4 +34,37 @@ def cholesky_decomposition(A):
     full_e_inv = np.eye(n)
     full_e_inv[i:, i:] = E_inv
     L = L @ full_e_inv
-  return L
+  return L, A
+
+
+def ldlt_elimination_matrix(A):
+  n = A.shape[0]
+  E = np.eye(n)
+  E[1:, 0] = -A[1:, 0] / A[0, 0]
+  return E
+
+
+def ldlt_elimination_matrix_inverse(A):
+  n = A.shape[0]
+  E_inv = np.eye(n)
+  E_inv[1:, 0] = A[1:, 0] / A[0, 0]
+  return E_inv
+
+
+def ldlt_decomposition(A):
+  # A is just symmetric?, return L, D such that A = LDL^T where D is diagonal
+  # No sqrts involved -- so A can be indefinite.
+  A = A.copy()
+  # A is a square matrix.
+  assert A.shape[0] == A.shape[1], f'A is not square: {A.shape}'
+  n = A.shape[0]
+  L = np.eye(n)
+  for i in range(n):
+    E = ldlt_elimination_matrix(A[i:, i:])
+    E_inv = ldlt_elimination_matrix_inverse(A[i:, i:])
+    # Update the submatrix of A -- this gradually should become D.
+    A[i:, i:] = E @ A[i:, i:] @ E.T
+    full_e_inv = np.eye(n)
+    full_e_inv[i:, i:] = E_inv
+    L = L @ full_e_inv
+  return L, A

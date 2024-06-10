@@ -11,8 +11,9 @@ class CholeskyTest(unittest.TestCase):
         [-2., 5., -4.],
         [4., -4., 14.]
     ], dtype=np.float64)
-    L = cd.cholesky_decomposition(A)
+    L, mI = cd.cholesky_decomposition(A)
     np.testing.assert_allclose(A, L @ L.T)
+    np.testing.assert_allclose(mI, np.eye(A.shape[0]))
 
   def test_elimination_matrix(self):
     A = np.array([
