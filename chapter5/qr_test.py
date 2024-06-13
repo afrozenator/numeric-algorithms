@@ -50,14 +50,25 @@ class QRTest(unittest.TestCase):
 
   def test_householder_transformation(self):
     # Example 5.3
-    A = np.array([
+    A_ = np.array([
         [2., -1., 5.],
         [2., 1., 2.],
         [1., 0., -2.],
     ], dtype=np.float64)
-    HA, v = qr.householder_transformation(A, debug=True)
-    print(f'{HA=}')
-    print(f'{v=}')
+
+    A = np.copy(A_)
+    Q, R = qr.householder_transformation(A, debug=True)
+
+    # R is same memory as A.
+    assert R is A
+
+    n = A.shape[1]
+    # Assert R is upper triangular.
+    for i in range(n):
+      np.testing.assert_allclose(R[i + 1:, i], np.zeros(n - i - 1), atol=1e-10)
+
+    # Multiply back and check the decomposition.
+    np.testing.assert_allclose(A_, Q @ R, atol=1e-10)
 
 
 if __name__ == '__main__':

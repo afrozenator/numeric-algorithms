@@ -51,23 +51,44 @@ def gram_schmidt_1(A, debug=False):
 def householder_matrix(v, n):
   """Matrix that reflects a vector over v.
 
+  # NOTE: Assumes v is a column vector.
+
   i.e. Hv = householder_matrix(v, n)
   Hv @ a = reflection of a over v.
   """
   return np.eye(n) - (2 * v @ v.T / (v.T @ v))
 
 
+# TODO(afro): Write this better.
 def householder_transformation(A, debug=False):
-  m, n = A.shape
-  # First column of A.
-  a = A[:, 0]
-  c = np.linalg.norm(a)
-  e1 = np.eye(n)[:, 0]
-  v = a - c * e1          # (n,)
-  v = v[..., np.newaxis]  # (n, 1)
-  H = householder_matrix(v, n)
-  if debug:
-    print(f'norm: {c=}')
-    print(f'a - ce1: {v}')
-    print(f'{H=}')
-  return H @ A, v
+  _, n = A.shape
+  I = np.eye(n)
+  Q = np.eye(n)
+  for i in range(n - 1):
+    if debug:
+      print(f'{i=} {A=}')
+    a = A[i:, i]              # (n-i,)
+    c = np.linalg.norm(a)     # scalar
+    ei = I[i:, i]             # (n-i,)
+    v = a - c * ei            # (n-i,)
+    v = v[..., np.newaxis]    # (n-i, 1)
+    H = householder_matrix(v, n - i)  # (n-i, n-i)
+    H_full = np.eye(n)
+    H_full[i:, i:] = H
+    Q = Q @ H_full.T
+    if debug:
+      with np.printoptions(precision=3):
+        print(f'{i=} norm: {c=}')
+        print(f'{i=} a - ce1: {v}')
+        print(f'{i=} {H=}')
+        maybe_I = np.round(H_full @ H_full.T, 3)
+        print(f'{i=} H_full @ H_full.T: {maybe_I=}')
+    # Overwrite into A.
+    np.dot(H_full, A, out=A)
+    if debug:
+      with np.printoptions(precision=3):
+        print(f'{i=} HvA: {np.round(A, 5)}')
+      print(f'---')
+
+  # Since we're modifying A in place.
+  return Q, A
