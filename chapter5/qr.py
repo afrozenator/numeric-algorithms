@@ -91,4 +91,4 @@ def householder_transformation(A, debug=False):
       print(f'---')
 
   # Since we're modifying A in place.
-  return Q, A
+  return Q, A  # A is R.
