@@ -92,3 +92,6 @@ def householder_transformation(A, debug=False):
 
   # Since we're modifying A in place.
   return Q, A  # A is R.
+
+
+# TODO(afro): Reduced Householder QR for the least squares case.
