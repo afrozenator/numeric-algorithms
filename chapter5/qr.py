@@ -61,21 +61,21 @@ def householder_matrix(v, n):
 
 # TODO(afro): Write this better.
 def householder_transformation(A, debug=False):
-  _, n = A.shape
-  I = np.eye(n)
-  Q = np.eye(n)
-  for i in range(n - 1):
+  m, n = A.shape
+  I = np.eye(m)
+  Q = np.eye(m)
+  for i in range(n):
     if debug:
       print(f'{i=} {A=}')
-    a = A[i:, i]              # (n-i,)
+    a = A[i:, i]              # (m-i,)
     c = np.linalg.norm(a)     # scalar
-    ei = I[i:, i]             # (n-i,)
-    v = a - c * ei            # (n-i,)
-    v = v[..., np.newaxis]    # (n-i, 1)
-    H = householder_matrix(v, n - i)  # (n-i, n-i)
-    H_full = np.eye(n)
+    ei = I[i:, i]             # (m-i,)
+    v = a - c * ei            # (m-i,)
+    v = v[..., np.newaxis]    # (m-i, 1)
+    H = householder_matrix(v, m - i)  # (m-i, m-i)
+    H_full = np.eye(m)        # (m, m)
     H_full[i:, i:] = H
-    Q = Q @ H_full.T
+    Q = Q @ H_full.T          # (m, m)
     if debug:
       with np.printoptions(precision=3):
         print(f'{i=} norm: {c=}')

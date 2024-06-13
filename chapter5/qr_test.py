@@ -57,7 +57,7 @@ class QRTest(unittest.TestCase):
     ], dtype=np.float64)
 
     A = np.copy(A_)
-    Q, R = qr.householder_transformation(A, debug=True)
+    Q, R = qr.householder_transformation(A, debug=False)
 
     # R is same memory as A.
     assert R is A
@@ -69,6 +69,34 @@ class QRTest(unittest.TestCase):
 
     # Multiply back and check the decomposition.
     np.testing.assert_allclose(A_, Q @ R, atol=1e-10)
+
+  def test_householder_transformation_nonsquare(self):
+    # Example 5.3
+    A_ = np.array([
+        [-1., 5.],
+        [1., 2.],
+        [0., -2.],
+    ], dtype=np.float64)
+    m, n = A_.shape
+    A = np.copy(A_)
+    Q, R = qr.householder_transformation(A, debug=False)
+
+    # R is same memory as A.
+    self.assertTrue(R is A)
+    self.assertEqual(Q.shape, (m, m))
+
+    # TODO(afro): Assert R is upper triangular.
+    # n = A.shape[1]
+    # for i in range(n):
+    #   np.testing.assert_allclose(R[i + 1:, i], np.zeros(n - i - 1), atol=1e-10)
+
+    # Multiply back and check the decomposition.
+    np.testing.assert_allclose(A_, Q @ R, atol=1e-10)
+
+    with np.printoptions(precision=3):
+      print(f'{A_=}')
+      print(f'{Q=}')
+      print(f'{R=}')
 
 
 if __name__ == '__main__':
