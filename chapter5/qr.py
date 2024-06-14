@@ -59,8 +59,18 @@ def householder_matrix(v, n):
   return np.eye(n) - (2 * v @ v.T / (v.T @ v))
 
 
-# TODO(afro): Write this better.
+# TODO(afro): Use this in the Householder-QR decomposition.
+def householder_matrix_product(v, n, A):
+  """Returns HvA, in O(n^2)."""
+  if v.ndim == 1:
+    v = v[..., np.newaxis]
+  # v is (n, 1), A is (n, n)
+  Ap = np.dot(v.T, A)  # (1, n)
+  return A - 2 * v @ Ap
+
+
 def householder_transformation(A, debug=False):
+  # TODO(afro): Write this better.
   m, n = A.shape
   I = np.eye(m)
   Q = np.eye(m)
@@ -72,18 +82,18 @@ def householder_transformation(A, debug=False):
     ei = I[i:, i]             # (m-i,)
     v = a - c * ei            # (m-i,)
     v = v[..., np.newaxis]    # (m-i, 1)
-    H = householder_matrix(v, m - i)  # (m-i, m-i)
+    Hv = householder_matrix(v, m - i)  # (m-i, m-i)
     H_full = np.eye(m)        # (m, m)
-    H_full[i:, i:] = H
+    H_full[i:, i:] = Hv
     Q = Q @ H_full.T          # (m, m)
     if debug:
       with np.printoptions(precision=3):
         print(f'{i=} norm: {c=}')
         print(f'{i=} a - ce1: {v}')
-        print(f'{i=} {H=}')
+        print(f'{i=} {Hv=}')
         maybe_I = np.round(H_full @ H_full.T, 3)
         print(f'{i=} H_full @ H_full.T: {maybe_I=}')
-    # Overwrite into A.
+    # Overwrite into A, i.e. A = H_full @ A
     np.dot(H_full, A, out=A)
     if debug:
       with np.printoptions(precision=3):

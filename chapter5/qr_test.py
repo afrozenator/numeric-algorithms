@@ -98,6 +98,23 @@ class QRTest(unittest.TestCase):
       print(f'{Q=}')
       print(f'{R=}')
 
+  # def test_exercise_5p1(self):
+  #   A = np.array([
+  #       [1., 1., 1.],
+  #       [0., 1., 1.],
+  #       [0., 1., 0.],
+  #   ], dtype=np.float64)
+
+  #   A_ = A.copy()
+  #   Q_h, R_h = qr.householder_transformation(A_, debug=False)
+
+  #   A_ = A.copy()
+  #   Q_gs, R_gs = qr.gram_schmidt_1(A_, debug=False)
+
+  #   # Multiply back and check.
+  #   np.testing.assert_allclose(A, Q_h @ R_h, atol=1e-10)
+  #   np.testing.assert_allclose(A, Q_gs @ R_gs, atol=1e-10)
+
 
 if __name__ == '__main__':
   unittest.main()
